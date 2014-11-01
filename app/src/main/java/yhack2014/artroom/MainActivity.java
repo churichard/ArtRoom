@@ -69,15 +69,14 @@ public class MainActivity extends Activity {
                 @Override
                 public void onLinkAccountDone(boolean bSuccess) {
                     if (bSuccess) {
-                        Toast.makeText(getBaseContext(), "Linked account!", Toast.LENGTH_LONG).show();
-                        createChat();
+                        Log.i(TAG, "Account linked");
+                        Toast.makeText(getBaseContext(), "Logged in", Toast.LENGTH_LONG).show();
                     } else {
-                        Toast.makeText(getBaseContext(), "Account link failed!", Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Account link failed");
+                        Toast.makeText(getBaseContext(), "Failed to log in", Toast.LENGTH_LONG).show();
                     }
                 }
             });
-        } else {
-            createChat();
         }
 
         // Estimote code
@@ -85,19 +84,20 @@ public class MainActivity extends Activity {
         textView = (TextView) findViewById(R.id.textView);
 
         beaconManager.setRangingListener(new BeaconManager.RangingListener() {
-            @Override public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
+            @Override
+            public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
                 double minDistance = Integer.MAX_VALUE;
                 Beacon closestBeacon = null;
-                for (int i = 0; i < beacons.size(); i++) {
-                    double dist = Utils.computeAccuracy(beacons.get(i));
+                for (Beacon beacon : beacons) {
+                    double dist = Utils.computeAccuracy(beacon);
                     if (dist < minDistance) {
                         minDistance = dist;
-                        closestBeacon = beacons.get(i);
+                        closestBeacon = beacon;
                     }
                 }
 
                 textView.setText("Minor value of the closest beacon: " + closestBeacon.getMinor());
-                Log.d(TAG, "Number of beacons: " + beacons.size());
+                //Log.d(TAG, "Number of beacons: " + beacons.size());
             }
         });
     }
@@ -116,7 +116,6 @@ public class MainActivity extends Activity {
                     Log.d(TAG, "onCreateChatFailed(), errorCode = " + errorCode + ", message = " + message);
                 }
             });
-
         } catch (MXException.AccountManagerIsNotValid accountManagerIsNotValid) {
             accountManagerIsNotValid.printStackTrace();
         }
@@ -150,6 +149,11 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         beaconManager.disconnect();
+        accountManager.unlinkAccount(new MXAccountManager.MXAccountUnlinkListener() {
+            @Override
+            public void onUnlinkAccountDone(MXSDKConfig.MXUserInfo mxUserInfo) {
+            }
+        });
         super.onDestroy();
     }
 
