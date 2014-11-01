@@ -13,6 +13,9 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.GET_TASKS"/>
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+
 
     <application
         android:allowBackup="true"
@@ -87,6 +90,9 @@
             android:windowSoftInputMode="stateHidden" >
         </activity>
         <service android:name=".service.AudioPlayerService" />
+
+        <service android:name="com.estimote.sdk.service.BeaconService"
+                    android:exported="false"/>
 
     </application>
 

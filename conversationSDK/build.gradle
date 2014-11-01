@@ -1,13 +1,13 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 19
     buildToolsVersion "20.0.0"
 
     defaultConfig {
         applicationId "com.moxtra.binder"
         minSdkVersion 18
-        targetSdkVersion 21
+        targetSdkVersion 19
     }
 
     buildTypes {

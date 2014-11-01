@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 19
     buildToolsVersion "20.0.0"
 
     defaultConfig {
         applicationId "yhack2014.artroom"
         minSdkVersion 18
-        targetSdkVersion 21
+        targetSdkVersion 19
         versionCode 1
         versionName "1.0"
     }
@@ -21,6 +21,7 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:support-v4:19.0.+'
+    compile files('libs/estimote-sdk-preview.jar')
     compile project(':conversationSDK')
-    compile "com.android.support:support-v4:21.0.+"
 }

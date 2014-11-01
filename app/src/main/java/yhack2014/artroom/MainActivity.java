@@ -17,6 +17,8 @@ import com.estimote.sdk.Utils;
 import java.util.List;
 
 import com.moxtra.sdk.MXAccountManager;
+import com.moxtra.sdk.MXChatManager;
+import com.moxtra.sdk.MXException;
 import com.moxtra.sdk.MXSDKConfig;
 import com.moxtra.sdk.MXSDKException;
 
@@ -46,18 +48,23 @@ public class MainActivity extends Activity {
             invalidParameter.printStackTrace();
         }
 
-        MXSDKConfig.MXUserInfo userInfo = new MXSDKConfig.MXUserInfo(UUID.randomUUID().toString(), MXSDKConfig.MXUserIdentityType.IdentityUniqueId);
-        MXSDKConfig.MXProfileInfo profile = new MXSDKConfig.MXProfileInfo("Daven", "Wu", null);
-        acctMgr.setupUser(userInfo, profile, null, new MXAccountManager.MXAccountLinkListener(){
-            @Override
-            public void onLinkAccountDone(boolean bSuccess){
-                if(bSuccess) {
-                    Toast.makeText(getBaseContext(), "Linked account!", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(getBaseContext(), "Account link failed!", Toast.LENGTH_LONG).show();
+        if(!acctMgr.isLinked()) {
+            MXSDKConfig.MXUserInfo userInfo = new MXSDKConfig.MXUserInfo(UUID.randomUUID().toString(), MXSDKConfig.MXUserIdentityType.IdentityUniqueId);
+            MXSDKConfig.MXProfileInfo profile = new MXSDKConfig.MXProfileInfo("Replace", "Me", null);
+            acctMgr.setupUser(userInfo, profile, null, new MXAccountManager.MXAccountLinkListener() {
+                @Override
+                public void onLinkAccountDone(boolean bSuccess) {
+                    if (bSuccess) {
+                        Toast.makeText(getBaseContext(), "Linked account!", Toast.LENGTH_LONG).show();
+                        createChat();
+                    } else {
+                        Toast.makeText(getBaseContext(), "Account link failed!", Toast.LENGTH_LONG).show();
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            createChat();
+        }
 
         // Estimote code
         beaconManager = new BeaconManager(this);
@@ -79,6 +86,28 @@ public class MainActivity extends Activity {
                 Log.d(TAG, "Number of beacons: " + beacons.size());
             }
         });
+    }
+
+    public void createChat() {
+        Log.d("MoxtraChat", "createChat() called");
+        MXChatManager conversationMgr = MXChatManager.getInstance();
+        try {
+            conversationMgr.createChat(new MXChatManager.OnCreateChatListener() {
+                @Override
+                public void onCreateChatSuccess(String binderID) {
+                    Log.d(TAG, "onCreateChatSuccess(), binderID = " + binderID);
+                }
+
+                @Override
+                public void onCreateChatFailed(int errorCode, String message) {
+                    Log.d(TAG, "onCreateChatFailed(), errorCode = " + errorCode + ", message = " + message);
+                }
+            });
+
+        } catch (MXException.AccountManagerIsNotValid accountManagerIsNotValid) {
+            accountManagerIsNotValid.printStackTrace();
+            Log.e(TAG, "createChatFailed.", accountManagerIsNotValid);
+        }
     }
 
     @Override
