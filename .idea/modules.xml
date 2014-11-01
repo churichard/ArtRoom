@@ -4,8 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ArtRoom.iml" filepath="$PROJECT_DIR$/ArtRoom.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/artroom.iml" filepath="$PROJECT_DIR$/artroom.iml" />
-      <module fileurl="file://$PROJECT_DIR$/artroom.iml" filepath="$PROJECT_DIR$/artroom.iml" />
       <module fileurl="file://$PROJECT_DIR$/conversationSDK/conversationSDK.iml" filepath="$PROJECT_DIR$/conversationSDK/conversationSDK.iml" />
     </modules>
   </component>
