@@ -1,6 +1,8 @@
 package yhack2014.artroom;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
@@ -35,6 +37,8 @@ public class MainActivity extends Activity {
 
     // Moxtra stuff
     private MXAccountManager acctMgr;
+    private String userId, firstName, lastName;
+    private static final String PREF_USER_ID = "PREF_USER_ID";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +46,16 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         // Moxtra code
+        SharedPreferences sharedPrefs = getSharedPreferences(PREF_USER_ID, Context.MODE_PRIVATE);
+        userId = sharedPrefs.getString(PREF_USER_ID, null);
+
+        if(userId == null) {
+            userId = UUID.randomUUID().toString();
+            SharedPreferences.Editor editor = sharedPrefs.edit();
+            editor.putString(PREF_USER_ID, userId);
+            editor.commit();
+        }
+
         try {
             acctMgr = MXAccountManager.createInstance(this, "u-DTusZ0ruc", "vWLjlkGMZOk");
         } catch (MXSDKException.InvalidParameter invalidParameter) {
@@ -49,8 +63,8 @@ public class MainActivity extends Activity {
         }
 
         if(!acctMgr.isLinked()) {
-            MXSDKConfig.MXUserInfo userInfo = new MXSDKConfig.MXUserInfo(UUID.randomUUID().toString(), MXSDKConfig.MXUserIdentityType.IdentityUniqueId);
-            MXSDKConfig.MXProfileInfo profile = new MXSDKConfig.MXProfileInfo("Replace", "Me", null);
+            MXSDKConfig.MXUserInfo userInfo = new MXSDKConfig.MXUserInfo(userId, MXSDKConfig.MXUserIdentityType.IdentityUniqueId);
+            MXSDKConfig.MXProfileInfo profile = new MXSDKConfig.MXProfileInfo(firstName, lastName, null);
             acctMgr.setupUser(userInfo, profile, null, new MXAccountManager.MXAccountLinkListener() {
                 @Override
                 public void onLinkAccountDone(boolean bSuccess) {
@@ -89,7 +103,6 @@ public class MainActivity extends Activity {
     }
 
     public void createChat() {
-        Log.d("MoxtraChat", "createChat() called");
         MXChatManager conversationMgr = MXChatManager.getInstance();
         try {
             conversationMgr.createChat(new MXChatManager.OnCreateChatListener() {
@@ -103,10 +116,8 @@ public class MainActivity extends Activity {
                     Log.d(TAG, "onCreateChatFailed(), errorCode = " + errorCode + ", message = " + message);
                 }
             });
-
         } catch (MXException.AccountManagerIsNotValid accountManagerIsNotValid) {
             accountManagerIsNotValid.printStackTrace();
-            Log.e(TAG, "createChatFailed.", accountManagerIsNotValid);
         }
     }
 
