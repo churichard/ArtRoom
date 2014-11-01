@@ -85,9 +85,11 @@ public class MainActivity extends Activity {
         textView = (TextView) findViewById(R.id.textView);
 
         beaconManager.setRangingListener(new BeaconManager.RangingListener() {
-            @Override public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
-                double minDistance = Integer.MAX_VALUE;
+            @Override
+            public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
+                double minDistance = Double.MAX_VALUE;
                 Beacon closestBeacon = null;
+
                 for (int i = 0; i < beacons.size(); i++) {
                     double dist = Utils.computeAccuracy(beacons.get(i));
                     if (dist < minDistance) {
@@ -97,7 +99,7 @@ public class MainActivity extends Activity {
                 }
 
                 textView.setText("Minor value of the closest beacon: " + closestBeacon.getMinor());
-                Log.d(TAG, "Number of beacons: " + beacons.size());
+                Log.d(TAG, "Closest beacon set");
             }
         });
     }
