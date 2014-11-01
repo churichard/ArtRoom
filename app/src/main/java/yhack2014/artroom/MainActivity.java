@@ -1,6 +1,7 @@
 package yhack2014.artroom;
 
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
@@ -14,6 +15,8 @@ import com.estimote.sdk.BeaconManager;
 import com.estimote.sdk.Region;
 import com.estimote.sdk.Utils;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.List;
 
 import com.moxtra.sdk.MXAccountManager;
@@ -22,7 +25,17 @@ import com.moxtra.sdk.MXException;
 import com.moxtra.sdk.MXSDKConfig;
 import com.moxtra.sdk.MXSDKException;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONObject;
+
 import java.util.UUID;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
@@ -35,6 +48,14 @@ public class MainActivity extends Activity {
 
     // Moxtra stuff
     private MXAccountManager acctMgr;
+
+    //Alex stuff
+    String urlStr = "http://media.jarnbjo.de/412.php";
+    URL url;
+    HttpURLConnection conn;
+    BufferedReader br;
+    String output;
+    Beacon sentBeac;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +102,40 @@ public class MainActivity extends Activity {
                         closestBeacon = beacons.get(i);
                     }
                 }
+                if(Utils.computeAccuracy(closestBeacon) < 1 && (closestBeacon == null || closestBeacon != sentBeac)) {
+                    new GetDataTask().execute();
+//                    try {
+//                        System.out.println(4);
+//                        url = new URL(urlStr);
+//
+//                        conn = (HttpURLConnection) url.openConnection();
+//                        System.out.println(5);
+//                        conn.setRequestMethod("GET");
+//                        System.out.println(6);
+//                        conn.setRequestProperty("Accept", "application/json");
+//
+//                        System.out.println(conn.getResponseCode());
+//                        System.out.println(7);
+//                        if (conn.getResponseCode() != 200) {
+//                            throw new RuntimeException("Failed : HTTP error code : "
+//                                    + conn.getResponseCode());
+//                        }
+//                        BufferedReader br = new BufferedReader(new InputStreamReader(
+//                                (conn.getInputStream())));
+//
+//                        String output;
+//                        System.out.println("Output from Server .... \n");
+//                        while ((output = br.readLine()) != null) {
+//                            Log.d(TAG, output);
+//                        }
+//
+//                        conn.disconnect();
+//
+//                    } catch (Exception e) {
+//                        System.out.println(e.getStackTrace());
+//                        System.out.println("Fail");
+//                    }
+               }
 
                 textView.setText("Minor value of the closest beacon: " + closestBeacon.getMinor());
                 Log.d(TAG, "Number of beacons: " + beacons.size());
@@ -158,5 +213,41 @@ public class MainActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+    private class GetDataTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... params) {
+            String url = "http://www.google.com";
+            HttpClient httpClient = new DefaultHttpClient();
+            try{
+                HttpGet httpGet = new HttpGet(url);
+                HttpResponse httpResponse = httpClient.execute(httpGet);
+                HttpEntity httpEntity = httpResponse.getEntity();
+
+                if(httpEntity != null) {
+
+
+                    InputStream inputStream = httpEntity.getContent();
+
+                    //Lecture du retour au format JSON
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                    StringBuilder stringBuilder = new StringBuilder();
+
+                    String ligneLue = bufferedReader.readLine();
+                    while (ligneLue != null) {
+                        stringBuilder.append(ligneLue + " \n");
+                        ligneLue = bufferedReader.readLine();
+                    }
+                    bufferedReader.close();
+
+                    Log.d(TAG, stringBuilder.toString());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+            return null;
+        }
     }
 }
