@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 import android.widget.TextView;
 
@@ -82,6 +84,43 @@ public class MainActivity extends Activity {
         // Estimote code
         beaconManager = new BeaconManager(this);
         textView = (TextView) findViewById(R.id.textView);
+    }
+
+    // Call to get user to join binder with given binderId
+    public static void joinChat(String binderId) {
+        MXChatManager conversationMgr = MXChatManager.getInstance();
+        try {
+            conversationMgr.openChat(binderId, new MXChatManager.OnOpenChatListener() {
+                @Override
+                public void onOpenChatSuccess() {
+                    Log.i(TAG, "Opened chat");
+                }
+
+                @Override
+                public void onOpenChatFailed(int i, String s) {
+                    Log.e(TAG, "i: " + i + " s: " + s);
+                }
+            });
+        } catch (MXException.AccountManagerIsNotValid accountManagerIsNotValid) {
+            accountManagerIsNotValid.printStackTrace();
+        }
+    }
+
+    // Starts scanning for iBeacons nearby the user and times out after 2 seconds
+    public void scanForBeacons(View v) {
+        final Handler handler = new Handler();
+        final Runnable stopScanning = new Runnable() {
+            @Override
+            public void run() {
+                beaconManager.setRangingListener(new BeaconManager.RangingListener() {
+                    @Override
+                    public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
+                        // Do nothing
+                    }
+                });
+            }
+        };
+        handler.postDelayed(stopScanning, 2000L);
 
         beaconManager.setRangingListener(new BeaconManager.RangingListener() {
             @Override
@@ -97,29 +136,11 @@ public class MainActivity extends Activity {
                     }
                 }
 
+                handler.removeCallbacks(stopScanning);
                 textView.setText("Minor value of the closest beacon: " + closestBeacon.getMinor());
                 Log.d(TAG, "Closest beacon set");
             }
         });
-    }
-
-    public void createChat() {
-        MXChatManager conversationMgr = MXChatManager.getInstance();
-        try {
-            conversationMgr.createChat(new MXChatManager.OnCreateChatListener() {
-                @Override
-                public void onCreateChatSuccess(String binderID) {
-                    Log.d(TAG, "onCreateChatSuccess(), binderID = " + binderID);
-                }
-
-                @Override
-                public void onCreateChatFailed(int errorCode, String message) {
-                    Log.d(TAG, "onCreateChatFailed(), errorCode = " + errorCode + ", message = " + message);
-                }
-            });
-        } catch (MXException.AccountManagerIsNotValid accountManagerIsNotValid) {
-            accountManagerIsNotValid.printStackTrace();
-        }
     }
 
     @Override
@@ -153,6 +174,7 @@ public class MainActivity extends Activity {
         accountManager.unlinkAccount(new MXAccountManager.MXAccountUnlinkListener() {
             @Override
             public void onUnlinkAccountDone(MXSDKConfig.MXUserInfo mxUserInfo) {
+                Log.d(TAG, "Logged out of " + mxUserInfo.userIdentity.toString());
             }
         });
         super.onDestroy();
