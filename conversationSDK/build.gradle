@@ -1,0 +1,23 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "20.0.0"
+
+    defaultConfig {
+        applicationId "com.moxtra.binder"
+        minSdkVersion 18
+        targetSdkVersion 21
+    }
+
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile files('libs/moxtra.jar')
+}

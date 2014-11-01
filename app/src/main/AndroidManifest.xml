@@ -2,13 +2,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="yhack2014.artroom" >
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name="yhack2014.artroom.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -16,6 +28,66 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--Moxtra activities !-->
+        <activity
+            android:name="com.moxtra.binder.activity.DialogFragmentActivity"
+            android:theme="@style/MoxtraTheme"
+            android:windowSoftInputMode="stateHidden|adjustResize" >
+        </activity>
+        <activity
+            android:name="com.moxtra.binder.meet.MXLiveShareViewActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/MoxtraTheme"
+            android:windowSoftInputMode="stateHidden|adjustPan" >
+        </activity>
+        <activity
+            android:name="com.moxtra.binder.MXTransparentActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/MoxFullTranslucentActivity"
+            android:windowSoftInputMode="stateHidden|adjustPan" >
+        </activity>
+        <activity
+            android:name="com.moxtra.binder.livemeet.MXSDKMeetActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/MoxtraTheme">
+        </activity>
+        <service android:name="com.moxtra.sdk.MoxtraMeetSdkService" />
+        <activity
+            android:name="com.moxtra.binder.activity.MXStackActivity"
+            android:theme="@style/MXActivityDialog"
+            android:windowSoftInputMode="stateHidden|adjustResize" >
+        </activity>
+        <activity
+            android:name="com.moxtra.binder.member.MXInviteActivity"
+            android:theme="@style/MXActivityDialog"
+            android:windowSoftInputMode="stateHidden" >
+        </activity>
+        <activity
+            android:name="com.moxtra.binder.conversation.MXConversationActivity"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="stateHidden|adjustResize"
+            android:theme="@style/MoxtraTheme" >
+        </activity>
+        <activity android:name="com.moxtra.binder.pageview.PageViewActivity"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="stateHidden|adjustPan"
+            android:theme="@style/MoxtraTheme" >
+        </activity>
+        <activity android:name="com.moxtra.binder.livemeet.LiveMeetActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/MoxtraTheme" >
+        </activity>
+        <activity android:name="com.moxtra.binder.multiimagepicker.MultiImagePickerActivity"
+            android:theme="@style/MoxtraTheme" >
+        </activity>
+        <activity
+            android:name="com.moxtra.binder.util.MXAlertDialog"
+            android:theme="@style/MoxFullTranslucentActivity"
+            android:windowSoftInputMode="stateHidden" >
+        </activity>
+        <service android:name=".service.AudioPlayerService" />
+
     </application>
 
 </manifest>
