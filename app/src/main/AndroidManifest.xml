@@ -35,58 +35,47 @@
         <!--Moxtra activities !-->
         <activity
             android:name="com.moxtra.binder.activity.DialogFragmentActivity"
-            android:theme="@style/MoxtraTheme"
             android:windowSoftInputMode="stateHidden|adjustResize" >
         </activity>
         <activity
             android:name="com.moxtra.binder.meet.MXLiveShareViewActivity"
             android:launchMode="singleTask"
-            android:theme="@style/MoxtraTheme"
             android:windowSoftInputMode="stateHidden|adjustPan" >
         </activity>
         <activity
             android:name="com.moxtra.binder.MXTransparentActivity"
             android:launchMode="singleTask"
-            android:theme="@style/MoxFullTranslucentActivity"
             android:windowSoftInputMode="stateHidden|adjustPan" >
         </activity>
         <activity
             android:name="com.moxtra.binder.livemeet.MXSDKMeetActivity"
-            android:launchMode="singleTask"
-            android:theme="@style/MoxtraTheme">
+            android:launchMode="singleTask">
         </activity>
         <service android:name="com.moxtra.sdk.MoxtraMeetSdkService" />
         <activity
             android:name="com.moxtra.binder.activity.MXStackActivity"
-            android:theme="@style/MXActivityDialog"
             android:windowSoftInputMode="stateHidden|adjustResize" >
         </activity>
         <activity
             android:name="com.moxtra.binder.member.MXInviteActivity"
-            android:theme="@style/MXActivityDialog"
             android:windowSoftInputMode="stateHidden" >
         </activity>
         <activity
             android:name="com.moxtra.binder.conversation.MXConversationActivity"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="stateHidden|adjustResize"
-            android:theme="@style/MoxtraTheme" >
+            android:windowSoftInputMode="stateHidden|adjustResize" >
         </activity>
         <activity android:name="com.moxtra.binder.pageview.PageViewActivity"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="stateHidden|adjustPan"
-            android:theme="@style/MoxtraTheme" >
+            android:windowSoftInputMode="stateHidden|adjustPan" >
         </activity>
         <activity android:name="com.moxtra.binder.livemeet.LiveMeetActivity"
-            android:launchMode="singleTask"
-            android:theme="@style/MoxtraTheme" >
+            android:launchMode="singleTask" >
         </activity>
-        <activity android:name="com.moxtra.binder.multiimagepicker.MultiImagePickerActivity"
-            android:theme="@style/MoxtraTheme" >
+        <activity android:name="com.moxtra.binder.multiimagepicker.MultiImagePickerActivity" >
         </activity>
         <activity
             android:name="com.moxtra.binder.util.MXAlertDialog"
-            android:theme="@style/MoxFullTranslucentActivity"
             android:windowSoftInputMode="stateHidden" >
         </activity>
         <service android:name=".service.AudioPlayerService" />

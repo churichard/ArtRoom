@@ -11,6 +11,7 @@ import android.graphics.Point;
 import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -20,8 +21,8 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
-import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.TextView;
 
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
@@ -136,19 +137,55 @@ public class MainActivity extends Activity {
                 @Override
                 public void onLinkAccountDone(boolean bSuccess) {
                     if (bSuccess) {
-                        Toast.makeText(getBaseContext(), "Linked account!", Toast.LENGTH_LONG).show();
-                        createChat();
+                        Log.i(TAG, "Account linked");
+                        Toast.makeText(getBaseContext(), "Logged in", Toast.LENGTH_LONG).show();
                     } else {
-                        Toast.makeText(getBaseContext(), "Account link failed!", Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Account link failed");
+                        Toast.makeText(getBaseContext(), "Failed to log in", Toast.LENGTH_LONG).show();
                     }
                 }
             });
-        } else {
-            createChat();
         }
 
         // Estimote code
         beaconManager = new BeaconManager(this);
+    }
+
+    // Call to get user to join binder with given binderId
+    public static void joinChat(String binderId) {
+        MXChatManager conversationMgr = MXChatManager.getInstance();
+        try {
+            conversationMgr.openChat(binderId, new MXChatManager.OnOpenChatListener() {
+                @Override
+                public void onOpenChatSuccess() {
+                    Log.i(TAG, "Opened chat");
+                }
+
+                @Override
+                public void onOpenChatFailed(int i, String s) {
+                    Log.e(TAG, "i: " + i + " s: " + s);
+                }
+            });
+        } catch (MXException.AccountManagerIsNotValid accountManagerIsNotValid) {
+            accountManagerIsNotValid.printStackTrace();
+        }
+    }
+
+    // Starts scanning for iBeacons nearby the user and times out after 2 seconds
+    public void scanForBeacons(View v) {
+        final Handler handler = new Handler();
+        final Runnable stopScanning = new Runnable() {
+            @Override
+            public void run() {
+                beaconManager.setRangingListener(new BeaconManager.RangingListener() {
+                    @Override
+                    public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
+                        // Do nothing
+                    }
+                });
+            }
+        };
+        handler.postDelayed(stopScanning, 2000L);
 
         beaconManager.setRangingListener(new BeaconManager.RangingListener() {
             @Override
@@ -164,34 +201,16 @@ public class MainActivity extends Activity {
                     }
                 }
 
+                handler.removeCallbacks(stopScanning);
                 if (closestBeacon != null) {
                     Log.d(TAG, "Minor value of the closest beacon: " + closestBeacon.getMinor());
                     Log.d(TAG, "Closest beacon set");
                 } else {
                     Log.d(TAG, "Closest beacon not set");
                 }
+
             }
         });
-    }
-
-    public void createChat() {
-        MXChatManager conversationMgr = MXChatManager.getInstance();
-        try {
-            conversationMgr.createChat(new MXChatManager.OnCreateChatListener() {
-                @Override
-                public void onCreateChatSuccess(String binderID) {
-                    Log.d(TAG, "onCreateChatSuccess(), binderID = " + binderID);
-                }
-
-                @Override
-                public void onCreateChatFailed(int errorCode, String message) {
-                    Log.d(TAG, "onCreateChatFailed(), errorCode = " + errorCode + ", message = " + message);
-                }
-            });
-
-        } catch (MXException.AccountManagerIsNotValid accountManagerIsNotValid) {
-            accountManagerIsNotValid.printStackTrace();
-        }
     }
 
     @Override
@@ -222,6 +241,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         beaconManager.disconnect();
+        accountManager.unlinkAccount(new MXAccountManager.MXAccountUnlinkListener() {
+            @Override
+            public void onUnlinkAccountDone(MXSDKConfig.MXUserInfo mxUserInfo) {
+                Log.d(TAG, "Logged out of " + mxUserInfo.userIdentity.toString());
+            }
+        });
         super.onDestroy();
     }
 
