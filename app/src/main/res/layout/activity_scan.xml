@@ -79,19 +79,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <Button
+    <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/button"
+        android:src="@drawable/fab"
         android:id="@+id/scanDiscussButton"
         android:text="@string/scanDiscuss"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginBottom="10dp"
-        android:gravity="center"
         android:visibility="invisible" />
 
     <TextView
