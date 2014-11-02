@@ -5,10 +5,8 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.Point;
-import android.graphics.drawable.RippleDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,13 +15,11 @@ import android.os.RemoteException;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
-import android.widget.Toast;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
@@ -60,6 +56,7 @@ public class ScanActivity extends Activity {
 
     // Estimote stuff
     private BeaconManager beaconManager;
+    private boolean rangingOn = false;
     private static final String ESTIMOTE_PROXIMITY_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D";
     private static final Region ALL_ESTIMOTE_BEACONS = new Region("regionId", ESTIMOTE_PROXIMITY_UUID, null, null);
 
@@ -76,19 +73,7 @@ public class ScanActivity extends Activity {
         setContentView(R.layout.activity_scan);
         sharedPrefs = getSharedPreferences(MainActivity.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            // Scales text size
-            final DisplayMetrics metrics =
-                    Resources.getSystem().getDisplayMetrics();
-
-            final float scale = metrics.density / 3;
-
-            TextView title = (TextView) findViewById(R.id.title);
-            TextView description = (TextView) findViewById(R.id.description);
-
-            title.setTextSize(title.getTextSize() * scale);
-            description.setTextSize(description.getTextSize() * scale);
-        } else {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             // Get touch coordinates
             final View touchView = findViewById(R.id.card);
 
@@ -105,7 +90,6 @@ public class ScanActivity extends Activity {
                             if (isOnClick) {
                                 xTouch = event.getX();
                                 yTouch = event.getY();
-                                Log.d(TAG, xTouch + ", " + yTouch);
                                 cardClick(v);
                             }
                             break;
@@ -144,7 +128,7 @@ public class ScanActivity extends Activity {
             invalidParameter.printStackTrace();
         }
 
-        if(!accountManager.isLinked()) {
+        if (!accountManager.isLinked()) {
             MXSDKConfig.MXUserInfo userInfo = new MXSDKConfig.MXUserInfo(userId, MXSDKConfig.MXUserIdentityType.IdentityUniqueId);
             MXSDKConfig.MXProfileInfo profile = new MXSDKConfig.MXProfileInfo(firstName, lastName, null);
             accountManager.setupUser(userInfo, profile, null, new MXAccountManager.MXAccountLinkListener() {
@@ -232,9 +216,6 @@ public class ScanActivity extends Activity {
 
         // Lollipop and up
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ColorStateList colorStateList = ColorStateList.valueOf(R.color.green);
-            RippleDrawable ripple = new RippleDrawable(colorStateList, null, null);
-            ripple.setHotspot(xTouch, yTouch);
 
             Display display = getWindowManager().getDefaultDisplay();
             Point size = new Point();
@@ -263,6 +244,7 @@ public class ScanActivity extends Activity {
                         super.onAnimationEnd(animation);
                         final View description = findViewById(R.id.description);
                         description.setVisibility(View.VISIBLE);
+                        findViewById(R.id.divider).setVisibility(View.VISIBLE);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             ViewAnimationUtils.createCircularReveal(myView, cx, cy, initialRadius, finalRadius).start();
                         }
@@ -291,6 +273,7 @@ public class ScanActivity extends Activity {
                         super.onAnimationEnd(animation);
                         final View description = findViewById(R.id.description);
                         description.setVisibility(View.GONE);
+                        findViewById(R.id.divider).setVisibility(View.GONE);
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                             ViewAnimationUtils.createCircularReveal(myView, cx, cy, finalRadius, initialRadius).start();
                         }
@@ -310,7 +293,7 @@ public class ScanActivity extends Activity {
 
     @Override
     protected void onStart() {
-        super.onStart();
+        super.onStart();/*
         beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
             @Override
             public void onServiceReady() {
@@ -320,7 +303,7 @@ public class ScanActivity extends Activity {
                     Log.e(TAG, "Cannot start ranging", e);
                 }
             }
-        });
+        });*/
     }
 
     @Override
@@ -345,23 +328,21 @@ public class ScanActivity extends Activity {
         super.onDestroy();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_scan, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+    public void toggleRanging(View view) {
+        if (!rangingOn) {
+            beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+                @Override
+                public void onServiceReady() {
+                    try {
+                        beaconManager.startRanging(ALL_ESTIMOTE_BEACONS);
+                    } catch (RemoteException e) {
+                        Log.e(TAG, "Cannot start ranging", e);
+                    }
+                }
+            });
+        } else {
+            beaconManager.disconnect();
         }
-        return super.onOptionsItemSelected(item);
     }
 
     private class GetBinderTask extends AsyncTask<Integer, Void, String> {
@@ -377,12 +358,12 @@ public class ScanActivity extends Activity {
             try {
                 HttpResponse response = client.execute(get);
 
-                if(response.getStatusLine().getStatusCode() == 200) {
+                if (response.getStatusLine().getStatusCode() == 200) {
                     InputStream responseStream = response.getEntity().getContent();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(responseStream));
                     String line;
 
-                    while((line = reader.readLine()) != null) {
+                    while ((line = reader.readLine()) != null) {
                         stringBuilder.append(line);
                     }
 
@@ -397,7 +378,7 @@ public class ScanActivity extends Activity {
 
         @Override
         protected void onPostExecute(String binderId) {
-            if(binderId != null) {
+            if (binderId != null) {
                 MXChatManager conversationMgr = MXChatManager.getInstance();
                 try {
                     conversationMgr.openChat(binderId, new MXChatManager.OnOpenChatListener() {

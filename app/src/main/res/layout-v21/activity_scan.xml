@@ -14,15 +14,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:onClick="cardClick"
-
+        android:layout_alignParentTop="true"
+        android:translationZ="20dp"
         card_view:cardCornerRadius="4dp">
 
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:clickable="true"
-            android:background="@drawable/ripple"
+            android:layout_centerHorizontal="true"
             android:id="@+id/card">
 
             <TextView
@@ -42,21 +41,32 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/picture"
                 android:src="@drawable/mona_lisa"
+                android:translationZ="20dp"
                 android:maxHeight="200dp"
-                android:paddingBottom="10dp"
                 android:layout_below="@id/title"
                 android:layout_centerHorizontal="true"
                 android:adjustViewBounds="true" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/divider"
+                android:text="@string/divider"
+                android:textSize="25sp"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@id/picture"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:visibility="gone" />
 
             <ScrollView
                 android:id="@+id/scrollView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/picture"
+                android:layout_below="@id/divider"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp">
+                android:paddingBottom="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -64,8 +74,7 @@
                     android:id="@+id/description"
                     android:text="@string/art_description"
                     android:textSize="20sp"
-                    android:visibility="gone"
-                    />
+                    android:visibility="gone" />
 
             </ScrollView>
         </RelativeLayout>
