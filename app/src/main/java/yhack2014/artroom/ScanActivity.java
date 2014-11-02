@@ -5,14 +5,13 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -56,7 +55,6 @@ public class ScanActivity extends Activity {
 
     // Estimote stuff
     private BeaconManager beaconManager;
-    private boolean rangingOn = false;
     private static final String ESTIMOTE_PROXIMITY_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D";
     private static final Region ALL_ESTIMOTE_BEACONS = new Region("regionId", ESTIMOTE_PROXIMITY_UUID, null, null);
 
@@ -156,7 +154,7 @@ public class ScanActivity extends Activity {
             conversationMgr.openChat(binderId, new MXChatManager.OnOpenChatListener() {
                 @Override
                 public void onOpenChatSuccess() {
-                    Log.i(TAG, "Opened chat");
+                    Log.i(TAG, "Opened discuss");
                 }
 
                 @Override
@@ -171,6 +169,8 @@ public class ScanActivity extends Activity {
 
     // Starts scanning for iBeacons nearby the user and times out after 2 seconds
     public void scanForBeacons(View v) {
+        connectToManager(v);
+
         final Handler handler = new Handler();
         final Runnable stopScanning = new Runnable() {
             @Override
@@ -293,17 +293,7 @@ public class ScanActivity extends Activity {
 
     @Override
     protected void onStart() {
-        super.onStart();/*
-        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
-            @Override
-            public void onServiceReady() {
-                try {
-                    beaconManager.startRanging(ALL_ESTIMOTE_BEACONS);
-                } catch (RemoteException e) {
-                    Log.e(TAG, "Cannot start ranging", e);
-                }
-            }
-        });*/
+        super.onStart();
     }
 
     @Override
@@ -328,8 +318,28 @@ public class ScanActivity extends Activity {
         super.onDestroy();
     }
 
-    public void toggleRanging(View view) {
-        if (!rangingOn) {
+    public void connectToManager(View view) {
+        new StartRanging().execute();
+
+        final Runnable stopScanning = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    beaconManager.stopRanging(ALL_ESTIMOTE_BEACONS);
+                } catch (android.os.RemoteException e) {
+                    Log.e(TAG, "Stop ranging not working");
+                }
+            }
+        };
+
+        final Handler handler = new Handler();
+        handler.postDelayed(stopScanning, 1000L);
+    }
+
+    private class StartRanging extends AsyncTask<Void, Void, String> {
+        protected String doInBackground(Void... voids) {
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+
             beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
                 @Override
                 public void onServiceReady() {
@@ -340,8 +350,8 @@ public class ScanActivity extends Activity {
                     }
                 }
             });
-        } else {
-            beaconManager.disconnect();
+
+            return null;
         }
     }
 
@@ -384,7 +394,7 @@ public class ScanActivity extends Activity {
                     conversationMgr.openChat(binderId, new MXChatManager.OnOpenChatListener() {
                         @Override
                         public void onOpenChatSuccess() {
-                            Log.i(TAG, "Opened chat");
+                            Log.i(TAG, "Opened discuss");
                         }
 
                         @Override
@@ -399,6 +409,5 @@ public class ScanActivity extends Activity {
                 Toast.makeText(getBaseContext(), "Could not find discussion for this piece", Toast.LENGTH_LONG);
             }
         }
-
     }
 }

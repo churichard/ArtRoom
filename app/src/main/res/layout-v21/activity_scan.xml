@@ -11,6 +11,7 @@
 
     <android.support.v7.widget.CardView
         android:id="@+id/card_view"
+        android:layout_marginTop="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -29,8 +30,10 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/title"
                 android:text="@string/art_title"
+                android:textColor="@color/dark_green"
                 android:textSize="40sp"
                 android:layout_centerHorizontal="true"
+                android:translationZ="20dp"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingTop="10dp"
@@ -79,5 +82,32 @@
             </ScrollView>
         </RelativeLayout>
     </android.support.v7.widget.CardView>
+
+    <ImageButton
+        android:id="@+id/getInfo"
+        android:src="@drawable/ic_refresh"
+        android:layout_alignParentBottom="true"
+        android:text="@string/connect"
+        android:onClick="scanForBeacons"
+        android:background="@drawable/button"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ImageButton
+        android:layout_alignTop="@id/getInfo"
+        android:src="@drawable/ic_comments"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:tint="@color/white"
+        android:clickable="true"
+        android:onClick="joinChat"
+        android:id="@+id/fab"
+        android:elevation="1dp"
+        android:background="@drawable/ripple"
+        android:stateListAnimator="@anim/anim"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 </RelativeLayout>
