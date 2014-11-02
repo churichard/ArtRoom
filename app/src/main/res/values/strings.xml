@@ -10,5 +10,6 @@
     <string name="title_activity_name">Registration</string>
     <string name="title_activity_main">ArtRoom</string>
     <string name="title_activity_scan">ArtRoom</string>
+    <string name="scanDiscuss">Discuss</string>
 
 </resources>

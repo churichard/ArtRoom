@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -34,6 +33,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -55,6 +56,8 @@ public class ScanActivity extends Activity {
 
     // Estimote stuff
     private BeaconManager beaconManager;
+    private boolean rangingOn = false;
+    private boolean scanning = false;
     private static final String ESTIMOTE_PROXIMITY_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D";
     private static final Region ALL_ESTIMOTE_BEACONS = new Region("regionId", ESTIMOTE_PROXIMITY_UUID, null, null);
 
@@ -167,14 +170,24 @@ public class ScanActivity extends Activity {
         }
     }
 
-    // Starts scanning for iBeacons nearby the user and times out after 2 seconds
+    // Starts scanning for iBeacons nearby the user and times out after 3 seconds
     public void scanForBeacons(View v) {
-        connectToManager(v);
+        Log.i(TAG, "Scanning for beacons");
+        scanning = true;
+        findViewById(R.id.scanScanningLabel).setVisibility(View.VISIBLE);
+        findViewById(R.id.scanInitialLabel).setVisibility(View.INVISIBLE);
+        findViewById(R.id.scanDiscussButton).setVisibility(View.INVISIBLE);
+        findViewById(R.id.scanNoObjectsLabel).setVisibility(View.INVISIBLE);
 
         final Handler handler = new Handler();
         final Runnable stopScanning = new Runnable() {
             @Override
             public void run() {
+                Log.i(TAG, "No beacons found");
+                findViewById(R.id.scanNoObjectsLabel).setVisibility(View.VISIBLE);
+                findViewById(R.id.scanScanningLabel).setVisibility(View.INVISIBLE);
+                findViewById(R.id.scanDiscussButton).setVisibility(View.INVISIBLE);
+                scanning = false;
                 beaconManager.setRangingListener(new BeaconManager.RangingListener() {
                     @Override
                     public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
@@ -183,28 +196,46 @@ public class ScanActivity extends Activity {
                 });
             }
         };
-        handler.postDelayed(stopScanning, 2000L);
+        handler.postDelayed(stopScanning, 3000L);
 
         beaconManager.setRangingListener(new BeaconManager.RangingListener() {
             @Override
             public void onBeaconsDiscovered(Region region, List<Beacon> beacons) {
-                double minDistance = Double.MAX_VALUE;
-                Beacon closestBeacon = null;
+                if(scanning) {
+                    double minDistance = Double.MAX_VALUE;
+                    Beacon closestBeacon = null;
 
-                for (int i = 0; i < beacons.size(); i++) {
-                    double dist = Utils.computeAccuracy(beacons.get(i));
-                    if (dist < minDistance) {
-                        minDistance = dist;
-                        closestBeacon = beacons.get(i);
+                    for (int i = 0; i < beacons.size(); i++) {
+                        double dist = Utils.computeAccuracy(beacons.get(i));
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            closestBeacon = beacons.get(i);
+                        }
                     }
-                }
 
-                handler.removeCallbacks(stopScanning);
-                if (closestBeacon != null) {
-                    Log.d(TAG, "Minor value of the closest beacon: " + closestBeacon.getMinor());
-                    Log.d(TAG, "Closest beacon set");
-                } else {
-                    Log.d(TAG, "Closest beacon not set");
+                    handler.removeCallbacks(stopScanning);
+                    scanning = false;
+
+                    if (Utils.computeProximity(closestBeacon) == Utils.Proximity.IMMEDIATE) {
+                        new GetObjectTask().execute(closestBeacon.getMinor());
+                        findViewById(R.id.scanDiscussButton).setVisibility(View.VISIBLE);
+                        findViewById(R.id.getInfo).setVisibility(View.VISIBLE);
+                        findViewById(R.id.scanScanningLabel).setVisibility(View.INVISIBLE);
+                        findViewById(R.id.scanNoObjectsLabel).setVisibility(View.INVISIBLE);
+
+                        findViewById(R.id.scanDiscussButton).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                            }
+                        });
+                        Log.d(TAG, "Minor value of the closest beacon: " + closestBeacon.getMinor());
+                        Log.d(TAG, "Closest beacon set");
+                    } else {
+                        Log.d(TAG, "No beacons close enough");
+                        findViewById(R.id.scanNoObjectsLabel).setVisibility(View.VISIBLE);
+                        findViewById(R.id.scanScanningLabel).setVisibility(View.INVISIBLE);
+                        findViewById(R.id.scanDiscussButton).setVisibility(View.INVISIBLE);
+                    }
                 }
             }
         });
@@ -312,7 +343,7 @@ public class ScanActivity extends Activity {
         accountManager.unlinkAccount(new MXAccountManager.MXAccountUnlinkListener() {
             @Override
             public void onUnlinkAccountDone(MXSDKConfig.MXUserInfo mxUserInfo) {
-                Log.d(TAG, "Logged out of " + mxUserInfo.userIdentity.toString());
+                Log.d(TAG, "Logged out of " + mxUserInfo.userIdentity);
             }
         });
         super.onDestroy();
@@ -355,10 +386,10 @@ public class ScanActivity extends Activity {
         }
     }
 
-    private class GetBinderTask extends AsyncTask<Integer, Void, String> {
+    private class GetObjectTask extends AsyncTask<Integer, Void, JSONObject> {
 
         @Override
-        protected String doInBackground(Integer... integers) {
+        protected JSONObject doInBackground(Integer... integers) {
             int minorId = integers[0];
             String url = "http://artroom.ngrok.com/beacon/" + minorId;
             HttpGet get = new HttpGet(url);
@@ -377,9 +408,11 @@ public class ScanActivity extends Activity {
                         stringBuilder.append(line);
                     }
 
-                    return stringBuilder.toString();
+                    return new JSONObject(stringBuilder.toString());
                 }
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
 
@@ -387,26 +420,26 @@ public class ScanActivity extends Activity {
         }
 
         @Override
-        protected void onPostExecute(String binderId) {
-            if (binderId != null) {
-                MXChatManager conversationMgr = MXChatManager.getInstance();
+        protected void onPostExecute(JSONObject jsonObject) {
+            if(jsonObject != null) {
+                String author, title, date, curatorComment;
+                final String binderId;
                 try {
-                    conversationMgr.openChat(binderId, new MXChatManager.OnOpenChatListener() {
-                        @Override
-                        public void onOpenChatSuccess() {
-                            Log.i(TAG, "Opened discuss");
-                        }
+                    author = jsonObject.getString("author");
+                    title = jsonObject.getString("title");
+                    date = jsonObject.getString("date");
+                    curatorComment = jsonObject.getString("curatorComment");
+                    binderId = jsonObject.getString("binderId");
 
+                    findViewById(R.id.scanDiscussButton).setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onOpenChatFailed(int i, String s) {
-                            Log.e(TAG, "i: " + i + " s: " + s);
+                        public void onClick(View view) {
+                            joinChat(binderId);
                         }
                     });
-                } catch (MXException.AccountManagerIsNotValid accountManagerIsNotValid) {
-                    accountManagerIsNotValid.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-            } else {
-                Toast.makeText(getBaseContext(), "Could not find discussion for this piece", Toast.LENGTH_LONG);
             }
         }
     }
