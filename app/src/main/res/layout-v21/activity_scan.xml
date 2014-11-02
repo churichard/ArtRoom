@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
-        android:translationZ="20dp"
+        android:elevation="20dp"
         card_view:cardCornerRadius="4dp">
 
         <RelativeLayout
@@ -30,10 +30,10 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/title"
                 android:text="@string/art_title"
-                android:textColor="@color/dark_green"
+                android:textColor="@color/accent"
                 android:textSize="40sp"
                 android:layout_centerHorizontal="true"
-                android:translationZ="20dp"
+                android:elevation="20dp"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingTop="10dp"
@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/picture"
                 android:src="@drawable/mona_lisa"
-                android:translationZ="20dp"
+                android:elevation="20dp"
                 android:maxHeight="200dp"
                 android:layout_below="@id/title"
                 android:layout_centerHorizontal="true"
@@ -90,23 +90,22 @@
         android:text="@string/connect"
         android:onClick="scanForBeacons"
         android:background="@drawable/button"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
+        android:elevation="5dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
     <ImageButton
-        android:layout_alignTop="@id/getInfo"
-        android:src="@drawable/ic_comments"
+        android:src="@drawable/fab"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:tint="@color/white"
-        android:clickable="true"
-        android:onClick="joinChat"
         android:id="@+id/fab"
-        android:elevation="1dp"
+        android:elevation="10dp"
         android:background="@drawable/ripple"
         android:stateListAnimator="@anim/anim"
+        android:layout_marginBottom="10dp"
+        android:layout_marginRight="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 

@@ -3,4 +3,5 @@
     <color name="green">#99CC00</color>
     <color name="dark_green">#669900</color>
     <color name="accent">#4527A0</color>
+    <color name="darker_accent">#311b92</color>
 </resources>

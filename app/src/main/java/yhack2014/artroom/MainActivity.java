@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.Outline;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Gravity;
 
 public class MainActivity extends Activity {
     private static final String TAG = "yhack2014.artroom.MainActivity";
@@ -27,14 +29,5 @@ public class MainActivity extends Activity {
             Intent intent = new Intent(this, ScanActivity.class);
             startActivity(intent);
         }
-
-        /*
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            //Outline
-            int size = getResources().getDimensionPixelSize(R.dimen.fab_size);
-            Outline outline = new Outline();
-            outline.setOval(0, 0, size, size);
-            //findViewById(R.id.fab).setOutline(outline);
-        }*/
     }
 }

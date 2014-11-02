@@ -54,6 +54,12 @@ public class ScanActivity extends Activity {
     private float mDownX;
     private float mDownY;
 
+    private float xFabTouch;
+    private float yFabTouch;
+    private boolean isFabOnClick;
+    private float mFabDownX;
+    private float mFabDownY;
+
     // Estimote stuff
     private BeaconManager beaconManager;
     private boolean rangingOn = false;

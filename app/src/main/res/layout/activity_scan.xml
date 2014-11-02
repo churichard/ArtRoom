@@ -25,6 +25,7 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/title"
                 android:text="@string/art_title"
+                android:textColor="@color/accent"
                 android:textSize="30sp"
                 android:layout_centerHorizontal="true"
                 android:paddingLeft="10dp"
@@ -66,22 +67,23 @@
         android:text="@string/connect"
         android:onClick="scanForBeacons"
         android:background="@drawable/button"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <Button
+    <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@null"
         android:id="@+id/scanDiscussButton"
         android:text="@string/scanDiscuss"
-        android:background="@drawable/button"
+        android:src="@drawable/fab"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:paddingLeft="10dp"
+        android:paddingBottom="10dp"
         android:paddingRight="10dp"
-        android:visibility="invisible" />
+        android:visibility="visible" />
 
     <TextView
         android:layout_width="wrap_content"
