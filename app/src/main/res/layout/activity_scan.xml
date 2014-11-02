@@ -6,14 +6,15 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context=".MainActivity">
+    tools:context=".ScanActivity">
 
     <ScrollView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/getInfo"
-        android:paddingBottom="10px"
-        android:id="@+id/scrollView">
+        android:layout_marginBottom="15dp"
+        android:id="@+id/scrollView"
+        android:visibility="invisible">
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -25,6 +26,7 @@
                 android:id="@+id/title"
                 android:text="@string/art_title"
                 android:textSize="30sp"
+                android:layout_centerHorizontal="true"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingTop="10dp"
@@ -68,5 +70,46 @@
         android:paddingRight="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/scanDiscussButton"
+        android:text="@string/scanDiscuss"
+        android:background="@drawable/button"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:visibility="invisible" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:textSize="30sp"
+        android:id="@+id/scanNoObjectsLabel"
+        android:text="No objects found nearby"
+        android:gravity="center"
+        android:visibility="invisible" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:textSize="30sp"
+        android:id="@+id/scanInitialLabel"
+        android:text="Press button to\nscan for objects"
+        android:gravity="center" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:textSize="30sp"
+        android:id="@+id/scanScanningLabel"
+        android:text="Scanning..."
+        android:gravity="center"
+        android:visibility="invisible"/>
 
 </RelativeLayout>
