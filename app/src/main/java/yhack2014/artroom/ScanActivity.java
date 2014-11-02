@@ -5,6 +5,8 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -16,6 +18,7 @@ import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,10 +32,13 @@ import com.moxtra.sdk.MXException;
 import com.moxtra.sdk.MXSDKConfig;
 import com.moxtra.sdk.MXSDKException;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -180,7 +186,19 @@ public class ScanActivity extends Activity {
     public void scanForBeacons(View v) {
         Log.i(TAG, "Scanning for beacons");
         scanning = true;
+        beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
+            @Override
+            public void onServiceReady() {
+                try {
+                    beaconManager.startRanging(ALL_ESTIMOTE_BEACONS);
+                } catch (RemoteException e) {
+                    Log.e(TAG, "Cannot start ranging", e);
+                }
+            }
+        });
+
         findViewById(R.id.scanScanningLabel).setVisibility(View.VISIBLE);
+        findViewById(R.id.scanArtContainer).setVisibility(View.INVISIBLE);
         findViewById(R.id.scanInitialLabel).setVisibility(View.INVISIBLE);
         findViewById(R.id.scanDiscussButton).setVisibility(View.INVISIBLE);
         findViewById(R.id.scanNoObjectsLabel).setVisibility(View.INVISIBLE);
@@ -222,26 +240,24 @@ public class ScanActivity extends Activity {
                     handler.removeCallbacks(stopScanning);
                     scanning = false;
 
-                    if (Utils.computeProximity(closestBeacon) == Utils.Proximity.IMMEDIATE) {
-                        new GetObjectTask().execute(closestBeacon.getMinor());
-                        findViewById(R.id.scanDiscussButton).setVisibility(View.VISIBLE);
-                        findViewById(R.id.getInfo).setVisibility(View.VISIBLE);
-                        findViewById(R.id.scanScanningLabel).setVisibility(View.INVISIBLE);
-                        findViewById(R.id.scanNoObjectsLabel).setVisibility(View.INVISIBLE);
+                    if(closestBeacon != null) {
+                        if (Utils.computeProximity(closestBeacon) == Utils.Proximity.IMMEDIATE) {
+                            new GetObjectTask().execute(closestBeacon.getMinor());
+                            findViewById(R.id.scanDiscussButton).setVisibility(View.VISIBLE);
+                            findViewById(R.id.scanScanningLabel).setVisibility(View.INVISIBLE);
+                            findViewById(R.id.scanNoObjectsLabel).setVisibility(View.INVISIBLE);
 
-                        findViewById(R.id.scanDiscussButton).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                            }
-                        });
-                        Log.d(TAG, "Minor value of the closest beacon: " + closestBeacon.getMinor());
-                        Log.d(TAG, "Closest beacon set");
-                    } else {
-                        Log.d(TAG, "No beacons close enough");
-                        findViewById(R.id.scanNoObjectsLabel).setVisibility(View.VISIBLE);
-                        findViewById(R.id.scanScanningLabel).setVisibility(View.INVISIBLE);
-                        findViewById(R.id.scanDiscussButton).setVisibility(View.INVISIBLE);
+                            Log.d(TAG, "Minor value of the closest beacon: " + closestBeacon.getMinor());
+                            Log.d(TAG, "Closest beacon set");
+                        } else {
+                            Log.d(TAG, "No beacons close enough");
+                            findViewById(R.id.scanNoObjectsLabel).setVisibility(View.VISIBLE);
+                            findViewById(R.id.scanScanningLabel).setVisibility(View.INVISIBLE);
+                            findViewById(R.id.scanDiscussButton).setVisibility(View.INVISIBLE);
+                        }
                     }
+
+                    beaconManager.disconnect();
                 }
             }
         });
@@ -355,43 +371,6 @@ public class ScanActivity extends Activity {
         super.onDestroy();
     }
 
-    public void connectToManager(View view) {
-        new StartRanging().execute();
-
-        final Runnable stopScanning = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    beaconManager.stopRanging(ALL_ESTIMOTE_BEACONS);
-                } catch (android.os.RemoteException e) {
-                    Log.e(TAG, "Stop ranging not working");
-                }
-            }
-        };
-
-        final Handler handler = new Handler();
-        handler.postDelayed(stopScanning, 1000L);
-    }
-
-    private class StartRanging extends AsyncTask<Void, Void, String> {
-        protected String doInBackground(Void... voids) {
-            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-
-            beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
-                @Override
-                public void onServiceReady() {
-                    try {
-                        beaconManager.startRanging(ALL_ESTIMOTE_BEACONS);
-                    } catch (RemoteException e) {
-                        Log.e(TAG, "Cannot start ranging", e);
-                    }
-                }
-            });
-
-            return null;
-        }
-    }
-
     private class GetObjectTask extends AsyncTask<Integer, Void, JSONObject> {
 
         @Override
@@ -405,6 +384,7 @@ public class ScanActivity extends Activity {
             try {
                 HttpResponse response = client.execute(get);
 
+                Log.d(TAG, "Status Code: " + response.getStatusLine().getStatusCode());
                 if (response.getStatusLine().getStatusCode() == 200) {
                     InputStream responseStream = response.getEntity().getContent();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(responseStream));
@@ -414,7 +394,7 @@ public class ScanActivity extends Activity {
                         stringBuilder.append(line);
                     }
 
-                    return new JSONObject(stringBuilder.toString());
+                    return (new JSONArray(stringBuilder.toString()).getJSONObject(0));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -428,25 +408,88 @@ public class ScanActivity extends Activity {
         @Override
         protected void onPostExecute(JSONObject jsonObject) {
             if(jsonObject != null) {
-                String author, title, date, curatorComment;
+                String author = null, title = null, curatorComment = null, image = null;
                 final String binderId;
                 try {
-                    author = jsonObject.getString("author");
-                    title = jsonObject.getString("title");
-                    date = jsonObject.getString("date");
-                    curatorComment = jsonObject.getString("curatorComment");
-                    binderId = jsonObject.getString("binderId");
+                    author = jsonObject.getString("Author");
+                    title = jsonObject.getString("Title");
+                    curatorComment = jsonObject.getString("CuratorComment");
+                    image = jsonObject.getString("ImageURL");
+                    new GetImageTask().execute(image);
+                    //binderId = jsonObject.getString("BinderId");
 
                     findViewById(R.id.scanDiscussButton).setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            joinChat(binderId);
+                            //joinChat(binderId);
                         }
                     });
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+
+                TextView authorText = (TextView) findViewById(R.id.scanArtAuthor);
+                TextView titleText = (TextView) findViewById(R.id.scanArtTitle);
+                TextView curatorCommentText = (TextView) findViewById(R.id.scanCuratorComment);
+
+                if(author.length() == 0) {
+                    authorText.setText("by Unknown Artist");
+                } else {
+                    authorText.setText("by " + author);
+                }
+                titleText.setText(title);
+                curatorCommentText.setText("Curator Comment: " + curatorComment);
+
+                findViewById(R.id.scanArtContainer).setVisibility(View.VISIBLE);
             }
+        }
+    }
+
+    private class GetImageTask extends AsyncTask<String, Void, Bitmap> {
+
+        @Override
+        protected Bitmap doInBackground(String... urls) {
+            String url = urls[0];
+            final DefaultHttpClient client = new DefaultHttpClient();
+            final HttpGet getRequest = new HttpGet(url);
+
+            try {
+                HttpResponse response = client.execute(getRequest);
+                final int statusCode = response.getStatusLine().getStatusCode();
+
+                if (statusCode != HttpStatus.SC_OK) {
+                    Log.w("ImageDownloader", "Error " + statusCode +
+                            " while retrieving bitmap from " + url);
+                    return null;
+                }
+
+                final HttpEntity entity = response.getEntity();
+
+                if (entity != null) {
+                    InputStream inputStream = null;
+                    try {
+                        inputStream = entity.getContent();
+                        final Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+                        return bitmap;
+                    } finally {
+                        if (inputStream != null) {
+                            inputStream.close();
+                        }
+                        entity.consumeContent();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            ((ImageView) findViewById(R.id.scanArtPicture)).setImageBitmap(bitmap);
+            findViewById(R.id.scanArtContainer).setVisibility(View.VISIBLE);
         }
     }
 }

@@ -10,10 +10,10 @@
 
     <ScrollView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:layout_above="@+id/getInfo"
         android:layout_marginBottom="15dp"
-        android:id="@+id/scrollView"
+        android:id="@+id/scanArtContainer"
         android:visibility="invisible">
 
         <RelativeLayout
@@ -23,34 +23,41 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/title"
+                android:id="@+id/scanArtTitle"
                 android:text="@string/art_title"
                 android:textColor="@color/accent"
                 android:textSize="30sp"
                 android:layout_centerHorizontal="true"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="30dp" />
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/picture"
-                android:src="@drawable/mona_lisa"
-                android:layout_below="@id/title"
-                android:layout_centerHorizontal="true"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:adjustViewBounds="true" />
+                android:gravity="center" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/description"
-                android:text="@string/art_description"
+                android:id="@+id/scanArtAuthor"
+                android:textColor="@color/accent"
+                android:textSize="30sp"
+                android:layout_below="@id/scanArtTitle"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="15dp"
+                android:gravity="center" />
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/scanArtPicture"
+                android:layout_below="@id/scanArtAuthor"
+                android:layout_centerHorizontal="true"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/scanCuratorComment"
                 android:textSize="15sp"
-                android:layout_below="@id/picture"
+                android:layout_below="@id/scanArtPicture"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
                 android:paddingTop="30dp"
@@ -72,18 +79,20 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <ImageButton
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@null"
+        android:background="@drawable/button"
         android:id="@+id/scanDiscussButton"
         android:text="@string/scanDiscuss"
-        android:src="@drawable/fab"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:paddingBottom="10dp"
+        android:paddingLeft="10dp"
         android:paddingRight="10dp"
-        android:visibility="visible" />
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:gravity="center"
+        android:visibility="invisible" />
 
     <TextView
         android:layout_width="wrap_content"

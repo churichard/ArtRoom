@@ -63,7 +63,7 @@
                 android:visibility="gone" />
 
             <ScrollView
-                android:id="@+id/scrollView"
+                android:id="@+id/scanArtContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/divider"
