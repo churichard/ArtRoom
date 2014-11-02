@@ -4,5 +4,7 @@
     <string name="app_name">ArtRoom</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_chat">ChatActivity</string>
+    <string name="art_title">Mona Lisa</string>
+    <string name="art_description">The Mona Lisa is a half-length portrait of a woman by the Italian artist Leonardo da Vinci, which has been acclaimed as "the best known, the most visited, the most written about, the most sung about, the most parodied work of art in the world".</string>
 
 </resources>

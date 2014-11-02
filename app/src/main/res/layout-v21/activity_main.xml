@@ -11,23 +11,64 @@
 
     <android.support.v7.widget.CardView
         android:id="@+id/card_view"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
+        android:onClick="cardClick"
+
         card_view:cardCornerRadius="4dp">
 
-        <TextView
+        <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/textView"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"/>
+            android:clickable="true"
+            android:background="@drawable/ripple"
+            android:id="@+id/card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/title"
+                android:text="@string/art_title"
+                android:textSize="40sp"
+                android:layout_centerHorizontal="true"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="20dp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/picture"
+                android:src="@drawable/mona_lisa"
+                android:maxHeight="200dp"
+                android:paddingBottom="10dp"
+                android:layout_below="@id/title"
+                android:layout_centerHorizontal="true"
+                android:adjustViewBounds="true" />
+
+            <ScrollView
+                android:id="@+id/scrollView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/picture"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/description"
+                    android:text="@string/art_description"
+                    android:textSize="20sp"
+                    android:visibility="gone"
+                     />
+
+            </ScrollView>
+        </RelativeLayout>
     </android.support.v7.widget.CardView>
-
-
 
 </RelativeLayout>

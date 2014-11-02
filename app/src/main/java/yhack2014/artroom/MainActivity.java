@@ -1,39 +1,56 @@
 package yhack2014.artroom;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.content.res.Resources;
+import android.graphics.Point;
+import android.graphics.drawable.RippleDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.estimote.sdk.Beacon;
 import com.estimote.sdk.BeaconManager;
 import com.estimote.sdk.Region;
 import com.estimote.sdk.Utils;
-
-import java.util.List;
-
 import com.moxtra.sdk.MXAccountManager;
 import com.moxtra.sdk.MXChatManager;
 import com.moxtra.sdk.MXException;
 import com.moxtra.sdk.MXSDKConfig;
 import com.moxtra.sdk.MXSDKException;
 
+import java.util.List;
 import java.util.UUID;
 
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
 
+    // Animation stuff
+    private final float SCROLL_THRESHOLD = 10;
+    private float xTouch;
+    private float yTouch;
+    private boolean isOnClick;
+    private float mDownX;
+    private float mDownY;
+
     // Estimote stuff
     private BeaconManager beaconManager;
     private static final String ESTIMOTE_PROXIMITY_UUID = "B9407F30-F5F8-466E-AFF9-25556B57FE6D";
     private static final Region ALL_ESTIMOTE_BEACONS = new Region("regionId", ESTIMOTE_PROXIMITY_UUID, null, null);
-    private TextView textView;
 
     // Moxtra stuff
     private MXAccountManager accountManager;
@@ -45,11 +62,61 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            // Scales text size
+            final DisplayMetrics metrics =
+                    Resources.getSystem().getDisplayMetrics();
+
+            final float scale = metrics.density / 3;
+
+            TextView title = (TextView) findViewById(R.id.title);
+            TextView description = (TextView) findViewById(R.id.description);
+
+            title.setTextSize(title.getTextSize() * scale);
+            description.setTextSize(description.getTextSize() * scale);
+        } else {
+            // Get touch coordinates
+            final View touchView = findViewById(R.id.card);
+
+            View.OnTouchListener touchListener = new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                        case MotionEvent.ACTION_DOWN:
+                            mDownX = event.getX();
+                            mDownY = event.getY();
+                            isOnClick = true;
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            if (isOnClick) {
+                                xTouch = event.getX();
+                                yTouch = event.getY();
+                                Log.d(TAG, xTouch + ", " + yTouch);
+                                cardClick(v);
+                            }
+                            break;
+                        case MotionEvent.ACTION_MOVE:
+                            if (isOnClick && (Math.abs(mDownX - event.getX()) > SCROLL_THRESHOLD
+                                    || Math.abs(mDownY - event.getY()) > SCROLL_THRESHOLD)) {
+                                isOnClick = false;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                    return true;
+                }
+            };
+
+            touchView.setOnTouchListener(touchListener);
+        }
+
         // Moxtra code
         SharedPreferences sharedPrefs = getSharedPreferences(PREF_USER_ID, Context.MODE_PRIVATE);
         userId = sharedPrefs.getString(PREF_USER_ID, null);
 
-        if(userId == null) {
+        if (userId == null) {
             userId = UUID.randomUUID().toString();
             SharedPreferences.Editor editor = sharedPrefs.edit();
             editor.putString(PREF_USER_ID, userId);
@@ -62,7 +129,7 @@ public class MainActivity extends Activity {
             invalidParameter.printStackTrace();
         }
 
-        if(!accountManager.isLinked()) {
+        if (!accountManager.isLinked()) {
             MXSDKConfig.MXUserInfo userInfo = new MXSDKConfig.MXUserInfo(userId, MXSDKConfig.MXUserIdentityType.IdentityUniqueId);
             MXSDKConfig.MXProfileInfo profile = new MXSDKConfig.MXProfileInfo(firstName, lastName, null);
             accountManager.setupUser(userInfo, profile, null, new MXAccountManager.MXAccountLinkListener() {
@@ -82,7 +149,6 @@ public class MainActivity extends Activity {
 
         // Estimote code
         beaconManager = new BeaconManager(this);
-        textView = (TextView) findViewById(R.id.textView);
 
         beaconManager.setRangingListener(new BeaconManager.RangingListener() {
             @Override
@@ -98,8 +164,12 @@ public class MainActivity extends Activity {
                     }
                 }
 
-                textView.setText("Minor value of the closest beacon: " + closestBeacon.getMinor());
-                Log.d(TAG, "Closest beacon set");
+                if (closestBeacon != null) {
+                    Log.d(TAG, "Minor value of the closest beacon: " + closestBeacon.getMinor());
+                    Log.d(TAG, "Closest beacon set");
+                } else {
+                    Log.d(TAG, "Closest beacon not set");
+                }
             }
         });
     }
@@ -126,7 +196,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onStart() {
-        super.onStart();
+        super.onStart();/*
         beaconManager.connect(new BeaconManager.ServiceReadyCallback() {
             @Override
             public void onServiceReady() {
@@ -136,7 +206,7 @@ public class MainActivity extends Activity {
                     Log.e(TAG, "Cannot start ranging", e);
                 }
             }
-        });
+        });*/
     }
 
     @Override
@@ -153,6 +223,88 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         beaconManager.disconnect();
         super.onDestroy();
+    }
+
+    // Method called when the art card is clicked
+    public void cardClick(View view) {
+        TextView description = (TextView) findViewById(R.id.description);
+
+        // Lollipop and up
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ColorStateList colorStateList = ColorStateList.valueOf(R.color.green);
+            RippleDrawable ripple = new RippleDrawable(colorStateList, null, null);
+            ripple.setHotspot(xTouch, yTouch);
+
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            int width = size.x;
+
+            if (description.getVisibility() == View.GONE) {
+                // previously invisible view
+                final View myView = findViewById(R.id.card_view);
+
+                // get the center for the clipping circle
+                final int cx = (int) xTouch;
+                final int cy = (int) yTouch;
+
+                final int initialRadius = 0;
+                final int finalRadius = width;
+
+                // create and start the animator for this view
+                // (the start radius is zero)
+                Animator anim = ViewAnimationUtils.createCircularReveal(myView, cx, cy, finalRadius, initialRadius);
+                anim.start();
+
+                anim.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        final View description = findViewById(R.id.description);
+                        description.setVisibility(View.VISIBLE);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            ViewAnimationUtils.createCircularReveal(myView, cx, cy, initialRadius, finalRadius).start();
+                        }
+                    }
+                });
+            } else {
+                // previously visible view
+                final View myView = findViewById(R.id.card_view);
+
+                // get the center for the clipping circle
+                final int cx = (int) xTouch;
+                final int cy = (int) yTouch;
+
+                final int initialRadius = width;
+                final int finalRadius = 0;
+
+                // create the animation (the final radius is zero)
+                Animator anim =
+                        ViewAnimationUtils.createCircularReveal(myView, cx, cy, initialRadius, finalRadius);
+                anim.start();
+
+                // make the view invisible when the animation is done
+                anim.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        final View description = findViewById(R.id.description);
+                        description.setVisibility(View.GONE);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            ViewAnimationUtils.createCircularReveal(myView, cx, cy, finalRadius, initialRadius).start();
+                        }
+                    }
+                });
+            }
+        }
+        // Lower than Lollipop
+        else {
+            if (description.getVisibility() == View.GONE) {
+                description.setVisibility(View.VISIBLE);
+            } else {
+                description.setVisibility(View.GONE);
+            }
+        }
     }
 
     @Override
