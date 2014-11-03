@@ -87,6 +87,7 @@
         android:text="@string/scanDiscuss"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
+        android:background="@null"
         android:layout_marginRight="10dp"
         android:layout_marginBottom="10dp"
         android:visibility="invisible" />
